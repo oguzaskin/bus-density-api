@@ -64,45 +64,16 @@
 </div>
 
 <script>
-    const API_BASE = "https://bus-density-api.onrender.com";
+   <script>
+fetch("https://bus-density-api.onrender.com/bus/42")
+  .then(r => r.json())
+  .then(d => {
+    console.log("API DATA:", d);
+    document.body.innerHTML += "<pre>" + JSON.stringify(d, null, 2) + "</pre>";
+  })
+  .catch(e => console.error("API ERROR:", e));
+</script>
 
-    async function getBusData() {
-        const busId = document.getElementById("busId").value.trim();
-        const resultDiv = document.getElementById("result");
-
-        if (!busId) {
-            alert("Otobüs ID giriniz");
-            return;
-        }
-
-        try {
-            const response = await fetch(`${API_BASE}/bus/${busId}`);
-            const data = await response.json();
-
-            const count = data.people_count;
-
-            resultDiv.style.display = "block";
-            resultDiv.innerHTML = `
-                <strong>Otobüs:</strong> ${busId}<br>
-                <strong>Kişi Sayısı:</strong> ${count}
-            `;
-
-            resultDiv.className = "result";
-
-            if (count <= 20) {
-                resultDiv.classList.add("low");
-            } else if (count <= 40) {
-                resultDiv.classList.add("medium");
-            } else {
-                resultDiv.classList.add("high");
-            }
-
-        } catch (err) {
-            resultDiv.style.display = "block";
-            resultDiv.innerHTML = "Sunucuya ulaşılamıyor";
-            resultDiv.className = "result high";
-        }
-    }
 </script>
 
 </body>
