@@ -3,15 +3,21 @@ import os
 
 app = Flask(__name__)
 
-# Bellek içi veri (ileride DB’ye taşınabilir)
+# In-memory storage (ileride DB / Redis kullanılabilir)
 bus_data = {}
+
 
 @app.route("/", methods=["GET"])
 def home():
     return jsonify({
         "status": "OK",
-        "message": "Bus Density REST API is running"
+        "service": "Bus Density REST API"
     }), 200
+
+
+@app.route("/health", methods=["GET"])
+def health():
+    return jsonify({"status": "healthy"}), 200
 
 
 @app.route("/update/<bus_id>", methods=["POST"])
@@ -26,8 +32,10 @@ def update_bus(bus_id):
 
     try:
         people_count = int(data["people_count"])
+        if people_count < 0:
+            raise ValueError
     except ValueError:
-        return jsonify({"error": "people_count must be an integer"}), 400
+        return jsonify({"error": "people_count must be a non-negative integer"}), 400
 
     bus_data[bus_id] = people_count
 
@@ -40,19 +48,12 @@ def update_bus(bus_id):
 
 @app.route("/bus/<bus_id>", methods=["GET"])
 def get_bus(bus_id):
-    if bus_id not in bus_data:
-        return jsonify({
-            "bus_id": bus_id,
-            "people_count": 0,
-            "note": "No data yet"
-        }), 200
-
     return jsonify({
         "bus_id": bus_id,
-        "people_count": bus_data[bus_id]
+        "people_count": bus_data.get(bus_id, 0)
     }), 200
 
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8000))
-    app.run(host="0.0.0.0", port=port)
+    app.run(host="0.0.0.0", port=port, debug=False)
