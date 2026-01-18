@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>Otobüs Yoğunluk Takibi</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f6f8;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .card {
+            background: #ffffff;
+            padding: 24px;
+            border-radius: 12px;
+            width: 320px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        input {
+            width: 100%;
+            padding: 10px;
+            margin-top: 12px;
+            font-size: 16px;
+        }
+
+        button {
+            width: 100%;
+            padding: 10px;
+            margin-top: 12px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        .result {
+            margin-top: 20px;
+            font-size: 20px;
+            padding: 12px;
+            border-radius: 8px;
+        }
+
+        .low { background: #c8e6c9; }
+        .medium { background: #fff9c4; }
+        .high { background: #ffcdd2; }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <h2>Otobüs Yoğunluğu</h2>
+
+    <input type="text" id="busId" placeholder="Otobüs ID (örn: 42)">
+    <button onclick="getBusData()">Sorgula</button>
+
+    <div id="result" class="result" style="display:none;"></div>
+</div>
+
+<script>
+    const API_BASE = "https://bus-density-api.onrender.com";
+
+    async function getBusData() {
+        const busId = document.getElementById("busId").value.trim();
+        const resultDiv = document.getElementById("result");
+
+        if (!busId) {
+            alert("Otobüs ID giriniz");
+            return;
+        }
+
+        try {
+            const response = await fetch(`${API_BASE}/bus/${busId}`);
+            const data = await response.json();
+
+            const count = data.people_count;
+
+            resultDiv.style.display = "block";
+            resultDiv.innerHTML = `
+                <strong>Otobüs:</strong> ${busId}<br>
+                <strong>Kişi Sayısı:</strong> ${count}
+            `;
+
+            resultDiv.className = "result";
+
+            if (count <= 20) {
+                resultDiv.classList.add("low");
+            } else if (count <= 40) {
+                resultDiv.classList.add("medium");
+            } else {
+                resultDiv.classList.add("high");
+            }
+
+        } catch (err) {
+            resultDiv.style.display = "block";
+            resultDiv.innerHTML = "Sunucuya ulaşılamıyor";
+            resultDiv.className = "result high";
+        }
+    }
+</script>
+
+</body>
+</html>
