@@ -4,7 +4,7 @@ from flask_cors import CORS
 app = Flask(__name__)
 CORS(app)  # Tüm domainlerden gelen isteklere izin ver
 
-# Örnek RAM tabanlı veri (yolcu sayısı)
+#RAM tabanlı veri (yolcu sayısı)
 bus_data = {
     42: 15,
     43: 8,
