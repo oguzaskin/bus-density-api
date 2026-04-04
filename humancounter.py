@@ -13,7 +13,7 @@ if not cap.isOpened():
     exit()
 
 bus_id = "42"  # Render API’de tek ID örnek
-server_url = f"https://bus-density-api.onrender.com/update/{bus_id}"
+server_url = f"https://bus-density-api.onrender.com{bus_id}"
 
 last_sent = 0  # Son gönderim zamanı
 
