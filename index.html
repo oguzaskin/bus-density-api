@@ -2,28 +2,54 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <title>Otobüs Yoğunluğu</title>
+    <title>Otobüs Yoğunluğu Dashboard</title>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; padding: 50px; }
+        h1 { color: #0055aa; }
+        .bus-card { border: 1px solid #ccc; padding: 20px; margin: 20px auto; width: 200px; border-radius: 10px; background: #f0f8ff; }
+        .bus-number { font-weight: bold; font-size: 18px; }
+        .bus-count { font-size: 24px; margin-top: 10px; color: #007700; }
+    </style>
 </head>
 <body>
     <h1>Otobüs Yoğunluğu Takibi</h1>
 
-    <p id="bus-density">Yükleniyor...</p>
+    <!-- Çoklu otobüs destekli kartlar -->
+    <div id="buses-container"></div>
 
     <script>
-        async function updateBusData() {
+        const busIds = [42]; // Buraya diğer otobüs ID'lerini ekleyebilirsin
+
+        async function fetchBus(busId) {
             try {
-                const response = await fetch("https://bus-density-api.onrender.com/bus/42");
+                const response = await fetch(`https://bus-density-api.onrender.com/bus/${busId}`);
                 const data = await response.json();
-                document.getElementById("bus-density").innerText = `Yolcu Sayısı: ${data.count}`;
+                return data.count;
             } catch (error) {
-                document.getElementById("bus-density").innerText = "API’ye ulaşılamıyor.";
-                console.error(error);
+                console.error(`Bus ${busId} API hatası:`, error);
+                return null;
             }
         }
 
-        // 5 saniyede bir güncelle
-        setInterval(updateBusData, 5000);
-        updateBusData();
+        async function updateBuses() {
+            const container = document.getElementById("buses-container");
+            container.innerHTML = ""; // Eski veriyi temizle
+
+            for (const id of busIds) {
+                const count = await fetchBus(id);
+                const card = document.createElement("div");
+                card.className = "bus-card";
+                card.innerHTML = `
+                    <div class="bus-number">Otobüs ${id}</div>
+                    <div class="bus-count">${count !== null ? count + " yolcu" : "API’ye ulaşılamıyor"}</div>
+                `;
+                container.appendChild(card);
+            }
+        }
+
+        // Her 5 saniyede bir güncelle
+        setInterval(updateBuses, 5000);
+        updateBuses();
     </script>
 </body>
 </html>
