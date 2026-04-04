@@ -14,11 +14,10 @@
 <body>
     <h1>Otobüs Yoğunluğu Takibi</h1>
 
-    <!-- Çoklu otobüs destekli kartlar -->
     <div id="buses-container"></div>
 
     <script>
-        const busIds = [42]; // Buraya diğer otobüs ID'lerini ekleyebilirsin
+        const busIds = [42, 43, 44]; // İzlemek istediğin otobüs ID’leri
 
         async function fetchBus(busId) {
             try {
@@ -33,7 +32,7 @@
 
         async function updateBuses() {
             const container = document.getElementById("buses-container");
-            container.innerHTML = ""; // Eski veriyi temizle
+            container.innerHTML = ""; // Önce eski veriyi temizle
 
             for (const id of busIds) {
                 const count = await fetchBus(id);
@@ -49,7 +48,7 @@
 
         // Her 5 saniyede bir güncelle
         setInterval(updateBuses, 5000);
-        updateBuses();
+        updateBuses(); // sayfa açılır açılmaz çalıştır
     </script>
 </body>
 </html>
