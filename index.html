@@ -1,28 +1,135 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-    <meta charset="UTF-8">
-    <title>Otobüs Yoğunluğu</title>
+<meta charset="UTF-8">
+<title>Otobüs Yoğunluk Paneli</title>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+body {
+    font-family: Arial;
+    background: #0f172a;
+    color: white;
+    text-align: center;
+    padding: 30px;
+}
+
+h1 {
+    color: #38bdf8;
+}
+
+.card {
+    background: #1e293b;
+    padding: 20px;
+    border-radius: 15px;
+    width: 400px;
+    margin: auto;
+    margin-top: 20px;
+}
+
+/* 🔥 DOLULUK BAR */
+.bar-container {
+    width: 100%;
+    background: #334155;
+    border-radius: 20px;
+    overflow: hidden;
+    margin-top: 20px;
+}
+
+.bar {
+    height: 25px;
+    width: 0%;
+    background: linear-gradient(90deg, #22c55e, #facc15, #ef4444);
+    transition: width 0.8s ease;
+}
+
+/* sayı */
+.count {
+    font-size: 50px;
+    margin: 10px;
+}
+</style>
 </head>
+
 <body>
 
-<h1>Otobüs Yoğunluğu</h1>
-<p id="result">Yükleniyor...</p>
+<h1>🚌 Otobüs Yoğunluk Sistemi</h1>
+
+<div class="card">
+    <h2>Otobüs 42</h2>
+
+    <div id="count" class="count">--</div>
+
+    <!-- 🔥 Doluluk Bar -->
+    <div class="bar-container">
+        <div id="bar" class="bar"></div>
+    </div>
+
+    <p id="status">Bağlanıyor...</p>
+
+    <!-- Grafik -->
+    <canvas id="chart"></canvas>
+</div>
 
 <script>
-async function getData() {
+
+let chartData = [];
+
+const ctx = document.getElementById('chart');
+
+const chart = new Chart(ctx, {
+    type: 'line',
+    data: {
+        labels: [],
+        datasets: [{
+            label: 'Yolcu Sayısı',
+            data: [],
+            borderColor: '#38bdf8',
+            backgroundColor: 'rgba(56,189,248,0.2)',
+            tension: 0.4
+        }]
+    }
+});
+
+async function update() {
     try {
         const res = await fetch("https://bus-density-backend.onrender.com/bus/42");
         const data = await res.json();
-        document.getElementById("result").innerText = "Yolcu Sayısı   : " + data.count;
+
+        let count = data.count;
+
+        // sayı
+        document.getElementById("count").innerText = count;
+
+        // 🔥 BAR (max 50 kişi varsayım)
+        let percent = Math.min((count / 50) * 100, 100);
+        document.getElementById("bar").style.width = percent + "%";
+
+        // grafik
+        let time = new Date().toLocaleTimeString();
+
+        chart.data.labels.push(time);
+        chart.data.datasets[0].data.push(count);
+
+        // fazla veri sil
+        if (chart.data.labels.length > 10) {
+            chart.data.labels.shift();
+            chart.data.datasets[0].data.shift();
+        }
+
+        chart.update();
+
+        document.getElementById("status").innerText = "Canlı veri aktif";
+
     } catch (e) {
-        document.getElementById("result").innerText = "API’ye ulaşılamıyor";
-        console.error(e);
+        document.getElementById("status").innerText = "API hatası";
     }
 }
 
-setInterval(getData, 5000);
-getData();
+setInterval(update, 3000);
+update();
+
 </script>
 
 </body>
