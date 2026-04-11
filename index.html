@@ -14,7 +14,7 @@ async function getData() {
     try {
         const res = await fetch("https://bus-density-backend.onrender.com/bus/42");
         const data = await res.json();
-        document.getElementById("result").innerText = "Yolcu Sayısı: " + data.count;
+        document.getElementById("result").innerText = "Yolcu Sayısı   : " + data.count;
     } catch (e) {
         document.getElementById("result").innerText = "API’ye ulaşılamıyor";
         console.error(e);
