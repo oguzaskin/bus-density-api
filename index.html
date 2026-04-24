@@ -83,6 +83,15 @@ h1 {
     background: linear-gradient(90deg, #22c55e, #facc15, #ef4444);
     transition: 0.5s;
 }
+.focus-mode .card {
+    display: none;
+}
+
+.focus-mode .card.active {
+    display: block;
+    width: 400px;
+    margin: 50px auto;
+}
 </style>
 </head>
 
@@ -151,16 +160,18 @@ buses.forEach(bus => {
 --------------------------*/
 
 function openFull(bus) {
-    activeBus = bus;
 
-    const card = document.getElementById(`card-${bus}`);
-    card.classList.add("fullscreen");
+    const container = document.getElementById("container");
 
-    // 🔥 KRİTİK FIX
-    setTimeout(() => {
-        charts[bus].resize();
-        charts[bus].update();
-    }, 300);
+    // tüm kartları gizle
+    container.classList.add("focus-mode");
+
+    // sadece seçilen kartı göster
+    document.querySelectorAll(".card").forEach(c => {
+        c.classList.remove("active");
+    });
+
+    document.getElementById(`card-${bus}`).classList.add("active");
 }
 
 /* -------------------------
@@ -183,7 +194,13 @@ function closeFull() {
 
 /* ESC */
 document.addEventListener("keydown", (e) => {
-    if (e.key === "Escape") closeFull();
+    if (e.key === "Escape") {
+        document.getElementById("container").classList.remove("focus-mode");
+
+        document.querySelectorAll(".card").forEach(c => {
+            c.classList.remove("active");
+        });
+    }
 });
 
 /* -------------------------
