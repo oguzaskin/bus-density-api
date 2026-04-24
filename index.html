@@ -149,9 +149,18 @@ buses.forEach(bus => {
 /* -------------------------
    FULLSCREEN AÇ
 --------------------------*/
+
 function openFull(bus) {
     activeBus = bus;
-    document.getElementById(`card-${bus}`).classList.add("fullscreen");
+
+    const card = document.getElementById(`card-${bus}`);
+    card.classList.add("fullscreen");
+
+    // 🔥 KRİTİK FIX
+    setTimeout(() => {
+        charts[bus].resize();
+        charts[bus].update();
+    }, 300);
 }
 
 /* -------------------------
@@ -159,7 +168,15 @@ function openFull(bus) {
 --------------------------*/
 function closeFull() {
     if (activeBus) {
-        document.getElementById(`card-${activeBus}`).classList.remove("fullscreen");
+
+        const card = document.getElementById(`card-${activeBus}`);
+        card.classList.remove("fullscreen");
+
+        setTimeout(() => {
+            charts[activeBus].resize();
+            charts[activeBus].update();
+        }, 300);
+
         activeBus = null;
     }
 }
