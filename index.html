@@ -19,16 +19,23 @@ h1 {
     color: #38bdf8;
 }
 
+.container {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+/* CARD */
 .card {
     background: #1e293b;
     padding: 20px;
     border-radius: 15px;
-    width: 400px;
-    margin: auto;
+    width: 300px;
     margin-top: 20px;
 }
 
-/*  DOLULUK BAR */
+/* BAR */
 .bar-container {
     width: 100%;
     background: #334155;
@@ -38,16 +45,20 @@ h1 {
 }
 
 .bar {
-    height: 25px;
+    height: 20px;
     width: 0%;
     background: linear-gradient(90deg, #22c55e, #facc15, #ef4444);
-    transition: width 0.8s ease;
+    transition: width 0.5s ease;
 }
 
-/* sayı */
 .count {
-    font-size: 50px;
+    font-size: 40px;
     margin: 10px;
+}
+
+.status {
+    font-size: 14px;
+    margin-top: 5px;
 }
 </style>
 </head>
@@ -56,74 +67,110 @@ h1 {
 
 <h1>🚌 Otobüs Yoğunluk Sistemi</h1>
 
-<div class="card">
-    <h2>Otobüs 42</h2>
-
-    <div id="count" class="count">--</div>
-
-    <!-- 🔥 Doluluk Bar -->
-    <div class="bar-container">
-        <div id="bar" class="bar"></div>
-    </div>
-
-    <p id="status">Bağlanıyor...</p>
-
-    <!-- Grafik -->
-    <canvas id="chart"></canvas>
-</div>
+<div class="container" id="container"></div>
 
 <script>
 
-let chartData = [];
+const buses = [42, 43, 44];
 
-const ctx = document.getElementById('chart');
+// 🔥 her otobüs için veri saklama
+let state = {};
 
-const chart = new Chart(ctx, {
-    type: 'line',
-    data: {
-        labels: [],
-        datasets: [{
-            label: 'Yolcu Sayısı',
-            data: [],
-            borderColor: '#38bdf8',
-            backgroundColor: 'rgba(56,189,248,0.2)',
-            tension: 0.4
-        }]
-    }
+buses.forEach(bus => {
+    state[bus] = {
+        lastUpdate: 0,
+        count: 0,
+        history: []
+    };
 });
 
+// kartları oluştur
+const container = document.getElementById("container");
+
+buses.forEach(bus => {
+    container.innerHTML += `
+    <div class="card">
+        <h2>Otobüs ${bus}</h2>
+        <div id="count-${bus}" class="count">--</div>
+
+        <div class="bar-container">
+            <div id="bar-${bus}" class="bar"></div>
+        </div>
+
+        <p id="status-${bus}" class="status">Bekleniyor...</p>
+
+        <canvas id="chart-${bus}"></canvas>
+    </div>
+    `;
+});
+
+// chartlar
+let charts = {};
+
+buses.forEach(bus => {
+    const ctx = document.getElementById(`chart-${bus}`);
+
+    charts[bus] = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: [],
+            datasets: [{
+                label: 'Yolcu',
+                data: [],
+                borderColor: '#38bdf8',
+                tension: 0.4
+            }]
+        }
+    });
+});
+
+// 🔥 ANA UPDATE
 async function update() {
-    try {
-        const res = await fetch("https://bus-density-backend.onrender.com/bus/42");
-        const data = await res.json();
 
-        let count = data.count;
+    for (let bus of buses) {
 
-        // sayı
-        document.getElementById("count").innerText = count;
+        try {
+            const res = await fetch(`https://bus-density-backend.onrender.com/bus/${bus}`);
+            const data = await res.json();
 
-        // 🔥 BAR (max 50 kişi varsayım)
-        let percent = Math.min((count / 50) * 100, 100);
-        document.getElementById("bar").style.width = percent + "%";
+            state[bus].count = data.count;
+            state[bus].lastUpdate = Date.now();
 
-        // grafik
-        let time = new Date().toLocaleTimeString();
-
-        chart.data.labels.push(time);
-        chart.data.datasets[0].data.push(count);
-
-        // fazla veri sil
-        if (chart.data.labels.length > 10) {
-            chart.data.labels.shift();
-            chart.data.datasets[0].data.shift();
+        } catch (e) {
+            console.log("API hata", bus);
         }
 
-        chart.update();
+        // 🔥 10 saniye kuralı
+        if (Date.now() - state[bus].lastUpdate > 10000) {
+            state[bus].count = 0;
+        }
 
-        document.getElementById("status").innerText = "Canlı veri aktif";
+        let count = state[bus].count;
 
-    } catch (e) {
-        document.getElementById("status").innerText = "API hatası";
+        // UI update
+        document.getElementById(`count-${bus}`).innerText = count;
+
+        // bar
+        let percent = Math.min((count / 50) * 100, 100);
+        document.getElementById(`bar-${bus}`).style.width = percent + "%";
+
+        // status
+        let statusText = "Canlı";
+        if (count === 0) statusText = "Boş";
+        document.getElementById(`status-${bus}`).innerText = statusText;
+
+        // chart
+        let time = new Date().toLocaleTimeString();
+
+        charts[bus].data.labels.push(time);
+        charts[bus].data.datasets[0].data.push(count);
+
+        if (charts[bus].data.labels.length > 10) {
+            charts[bus].data.labels.shift();
+            charts[bus].data.datasets[0].data.shift();
+        }
+
+        charts[bus].update();
     }
 }
 
